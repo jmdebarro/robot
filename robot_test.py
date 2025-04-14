@@ -7,7 +7,7 @@
 import time
 
 # Import the motorkit_robot.py file (must be in the same directory as this file!).
-import motorkit_robot
+import robot
 
 
 # Set the trim offset for each motor (left and right).  This is a value that

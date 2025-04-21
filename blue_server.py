@@ -37,8 +37,10 @@ class GATTService(dbus.service.Object):
     @dbus.service.method(dbus_interface="org.freedesktop.DBus.Properties", in_signature="", out_signature="")
     def StartAdvertising(self, bus):
         """Start advertising the service"""
-        adapter = dbus.Interface(bus.get_object('org.bluez', '/org/bluez/hci0'), 'org.bluez.Adapter1')
-        adapter.StartAdvertising()
+        
+        # Create an advertisement object and start advertising
+        advertisement = dbus.Interface(bus.get_object('org.bluez', '/org/bluez/robot/advertisement1'), 'org.bluez.LEAdvertisement1')
+        advertisement.StartAdvertising()
         print("Started advertising...")
 
 def main():

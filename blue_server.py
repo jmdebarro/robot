@@ -4,7 +4,10 @@ import dbus.mainloop.glib
 from gi.repository import GLib
 
 
-
+BLUEZ_SERVICE_NAME        = "org.bluez"
+ADAPTER_PATH             = "/org/bluez/hci0"                      # Your Pi’s BLE adapter
+ADVERTISING_MANAGER_IFACE = "org.bluez.LEAdvertisingManager1"
+ADVERTISEMENT_PATH       = "/org/bluez/robot/advertisement0"      # Must match your Advertisement() path
 ADVERTISEMENT_IFACE = 'org.bluez.LEAdvertisement1'
 ADVERTISEMENT_PATH = '/org/bluez/robot/advertisement0'
 

@@ -28,7 +28,7 @@ def main():
     robot.add_service(1, uuid=SERVICE_UUID, primary=True)
 
     # 4) Add a characteristic under that service
-    robot.add_characteristic(1, 1, CHARACTERISTIC_UUID, False
+    robot.add_characteristic(1, 1, CHARACTERISTIC_UUID, False,
                             ['read', 'write'], [],
                             read_callback=read_callback,
                             write_callback=write_callback)

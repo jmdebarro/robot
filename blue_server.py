@@ -46,7 +46,7 @@ def main():
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
     
     bus = dbus.SystemBus()
-    bus.request_name("org.bluez.example")
+    bus.request_name("org.bluez.robot")
     
     # Create service and characteristic
     service = GATTService(bus, "org/bluez/robot/drive")

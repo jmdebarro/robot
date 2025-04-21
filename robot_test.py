@@ -27,7 +27,7 @@ RIGHT_TRIM = 0
 
 # Create an instance of the robot with the specified trim values.
 
-robot = motorkit_robot.Robot(left_trim=LEFT_TRIM, right_trim=RIGHT_TRIM)
+robot = robot.Robot(left_trim=LEFT_TRIM, right_trim=RIGHT_TRIM)
 
 # Now move the robot around!
 # Each call below takes two parameters:

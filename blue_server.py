@@ -15,13 +15,13 @@ class GATTCharacteristic(dbus.service.Object):
         self.value = dbus.Array([], signature='y')  # Empty byte array as default value
 
     @dbus.service.method(dbus_interface="org.freedesktop.DBus.Properties", in_signature="s", out_signature="y")
-    def ReadValue(self, options):
+    def ReadValue(self):
         """Handle read requests from the client"""
         print("Read characteristic value:", self.value)
         return self.value
 
     @dbus.service.method(dbus_interface="org.freedesktop.DBus.Properties", in_signature="ay", out_signature="s")
-    def WriteValue(self, value, options):
+    def WriteValue(self, value):
         """Handle write requests from the client"""
         print("Received write command:", value)
         self.value = dbus.Array(value, signature='y')

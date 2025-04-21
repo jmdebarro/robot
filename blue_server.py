@@ -25,19 +25,14 @@ def main():
     )
 
     # 3) Add a primary service
-    robot.add_service(svc_id=1,
-                      uuid=SERVICE_UUID,
-                      primary=True)
+    robot.add_service(1, uuid=SERVICE_UUID, primary=True)
 
     # 4) Add a characteristic under that service
-    robot.add_characteristic(svc_id=1,
-                             chr_id=1,
-                             uuid=CHARACTERISTIC_UUID,
-                             value=[],         # initial empty value
-                             notifying=False,
-                             flags=['read', 'write'],
-                             read_callback=read_callback,
-                             write_callback=write_callback)
+    robot.add_characteristic(1, 1, CHARACTERISTIC_UUID,
+                            ['read', 'write'],
+                            read_callback=read_callback,
+                            write_callback=write_callback)
+
 
     # 5) Publish (this starts advertising + GATT server)
     robot.publish()

@@ -49,7 +49,7 @@ def main():
     # bus.request_name("org.bluez.robot")
     
     # Create service and characteristic
-    service = GATTService(bus, "org/bluez/robot/drive")
+    service = GATTService(bus, "/org/bluez/robot/drive")
     
     # Start advertising
     service.StartAdvertising()

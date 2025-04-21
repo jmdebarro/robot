@@ -97,9 +97,17 @@ def main():
         bus.get_object(BLUEZ_SERVICE_NAME, ADAPTER_PATH),
         ADVERTISING_MANAGER_IFACE
     )
-    ad_mgr.RegisterAdvertisement(ADVERTISEMENT_PATH, {})
 
-    print("Advertising started…")
+    # Schedule the registration to happen once the loop is running:
+    def register_ad():
+        ad_mgr.RegisterAdvertisement(ADVERTISEMENT_PATH, {})
+        print("Advertisement registered.")
+        return False     # remove from idle loop
+
+    GLib.idle_add(register_ad)
+
+    # Now start dispatching D‑Bus events
+    print("Starting main loop…")
     GLib.MainLoop().run()
 
 if __name__ == "__main__":

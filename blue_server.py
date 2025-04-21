@@ -34,7 +34,7 @@ class GATTService(dbus.service.Object):
         dbus.service.Object.__init__(self, bus, path)
         self.characteristic = GATTCharacteristic(bus, "/org/bluez/robot/drive")
 
-    @dbus.service.method(bus_interface="org.freedesktop.DBus.Properties", in_signature="", out_signature="")
+    @dbus.service.method(dbus_interface="org.freedesktop.DBus.Properties", in_signature="", out_signature="")
     def StartAdvertising(self, bus):
         """Start advertising the service"""
         adapter = dbus.Interface(bus.get_object('org.bluez', '/org/bluez/hci0'), 'org.freedesktop.DBus.Properties')

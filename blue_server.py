@@ -13,14 +13,16 @@ def read_callback(options):
     return bytearray("OK", 'utf-8')
 
 def main():
-    # 1) Grab the first Bluetooth adapter (hci0)
-    ble_adapter = adapter.Adapter()
+    # 2) Create a Peripheral
+    ble_adapter = adapter.Adapter()          # defaults to hci0
     ble_adapter.powered = True
 
-    # 2) Create a Peripheral
-    robot = peripheral.Peripheral(adapter=ble_adapter,
-                                  local_name='MyRobot',  # your device name
-                                  appearance=0)
+    # ✅ Pass the adapter’s address string as the first argument:
+    robot = peripheral.Peripheral(
+        ble_adapter.address,
+        local_name='MyRobot',
+        appearance=0
+    )
 
     # 3) Add a primary service
     robot.add_service(svc_id=1,

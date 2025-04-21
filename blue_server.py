@@ -41,13 +41,13 @@ class GATTCharacteristic(dbus.service.Object):
         dbus.service.Object.__init__(self, bus, path)
         self.value = dbus.Array([], signature='y')  # Empty byte array as default value
 
-    @dbus.service.method(dbus_interface="org.freedesktop.DBus.Properties", in_signature="s", out_signature="y")
+    @dbus.service.method(dbus_interface="org.bluez.GattCharacteristic1", in_signature="s", out_signature="y")
     def ReadValue(self, options):
         """Handle read requests from the client"""
         print("Read characteristic value:", self.value)
         return self.value
 
-    @dbus.service.method(dbus_interface="org.freedesktop.DBus.Properties", in_signature="ay", out_signature="s")
+    @dbus.service.method(dbus_interface="org.bluez.GattCharacteristic1", in_signature="ay", out_signature="s")
     def WriteValue(self, value):
         """Handle write requests from the client"""
         print("Received write command:", value)
@@ -61,14 +61,6 @@ class GATTService(dbus.service.Object):
         dbus.service.Object.__init__(self, bus, path)
         self.characteristic = GATTCharacteristic(bus, "/org/bluez/robot/drive")
 
-    @dbus.service.method(dbus_interface="org.freedesktop.DBus.Properties", in_signature="", out_signature="")
-    def StartAdvertising(self, bus):
-        """Start advertising the service"""
-        
-        # Create an advertisement object and start advertising
-        advertisement = dbus.Interface(bus.get_object('org.bluez', '/org/bluez/robot/advertisement1'), 'org.bluez.LEAdvertisement1')
-        advertisement.StartAdvertising()
-        print("Started advertising...")
 def main():
     # 1) set up the D-Bus main loop
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)

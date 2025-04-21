@@ -1,114 +1,47 @@
-import dbus
-import dbus.service
-import dbus.mainloop.glib
-from gi.repository import GLib
+from bluezero import adapter, peripheral
 
+SERVICE_UUID         = '12345678-1234-1234-1234-1234567890ab'
+CHARACTERISTIC_UUID  = '12345678-1234-1234-1234-1234567890cd'
 
-BLUEZ_SERVICE_NAME        = "org.bluez"
-ADAPTER_PATH             = "/org/bluez/hci0"                      # Your Pi’s BLE adapter
-ADVERTISING_MANAGER_IFACE = "org.bluez.LEAdvertisingManager1"
-ADVERTISEMENT_PATH       = "/org/bluez/robot/advertisement0"      # Must match your Advertisement() path
-ADVERTISEMENT_IFACE = 'org.bluez.LEAdvertisement1'
-ADVERTISEMENT_PATH = '/org/bluez/robot/advertisement0'
+def write_callback(value, options):
+    cmd = bytes(value).decode()
+    print(f"BLE write received: {cmd}")
+    # TODO: hook into your servo logic here
 
-class Advertisement(dbus.service.Object):
-    def __init__(self, bus, path, service_uuids):
-        super().__init__(bus, path)
-        self.service_uuids = service_uuids
-
-    # org.freedesktop.DBus.Properties.Get(interface, property) → variant
-    @dbus.service.method('org.freedesktop.DBus.Properties',
-                         in_signature='ss', out_signature='v')
-    def Get(self, interface, prop):
-        if interface != ADVERTISEMENT_IFACE:
-            raise dbus.exceptions.DBusException(
-                'org.freedesktop.DBus.Error.InvalidArgs',
-                'Invalid interface ' + interface)
-        if prop == 'Type':
-            return 'peripheral'
-        if prop == 'ServiceUUIDs':
-            return dbus.Array(self.service_uuids, signature='s')
-        raise dbus.exceptions.DBusException(
-            'org.freedesktop.DBus.Error.InvalidArgs',
-            'Unknown property ' + prop)
-
-    # org.freedesktop.DBus.Properties.GetAll(interface) → dict<string,variant>
-    @dbus.service.method('org.freedesktop.DBus.Properties',
-                         in_signature='s', out_signature='a{sv}')
-    def GetAll(self, interface):
-        if interface != ADVERTISEMENT_IFACE:
-            raise dbus.exceptions.DBusException(
-                'org.freedesktop.DBus.Error.InvalidArgs')
-        return {
-            'Type': dbus.String('peripheral'),
-            'ServiceUUIDs': dbus.Array(self.service_uuids, signature='s')
-        }
-
-    # org.bluez.LEAdvertisement1.Release()
-    @dbus.service.method(ADVERTISEMENT_IFACE, in_signature='', out_signature='')
-    def Release(self):
-        print(f"{ADVERTISEMENT_PATH}: released")
-
-
-# BlueZ GATT UUIDs
-SERVICE_UUID = "12345678-1234-1234-1234-1234567890ab"  # A custom UUID for your service
-CHARACTERISTIC_UUID = "12345678-1234-1234-1234-1234567890cd"  # A custom UUID for the characteristic
-
-class GATTCharacteristic(dbus.service.Object):
-    """GATT Characteristic class to handle read and write operations"""
-    
-    def __init__(self, bus, path):
-        dbus.service.Object.__init__(self, bus, path)
-        self.value = dbus.Array([], signature='y')  # Empty byte array as default value
-
-    @dbus.service.method(dbus_interface="org.bluez.GattCharacteristic1", in_signature="s", out_signature="y")
-    def ReadValue(self, options):
-        """Handle read requests from the client"""
-        print("Read characteristic value:", self.value)
-        return self.value
-
-    @dbus.service.method(dbus_interface="org.bluez.GattCharacteristic1", in_signature="ay", out_signature="s")
-    def WriteValue(self, value):
-        """Handle write requests from the client"""
-        print("Received write command:", value)
-        self.value = dbus.Array(value, signature='y')
-        return "Success"
-
-class GATTService(dbus.service.Object):
-    """GATT Service class to handle service and characteristics"""
-    
-    def __init__(self, bus, path):
-        dbus.service.Object.__init__(self, bus, path)
-        self.characteristic = GATTCharacteristic(bus, "/org/bluez/robot/drive")
+def read_callback(options):
+    # Optionally return a status or sensor reading
+    return bytearray("OK", 'utf-8')
 
 def main():
-    # 1) set up the D-Bus main loop
-    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-    bus = dbus.SystemBus()
+    # 1) Grab the first Bluetooth adapter (hci0)
+    ble_adapter = adapter.Adapter()
+    ble_adapter.powered = True
 
-    # 2) Create and register your GATT service object
-    service = GATTService(bus, '/org/bluez/robot/service0')
+    # 2) Create a Peripheral
+    robot = peripheral.Peripheral(adapter=ble_adapter,
+                                  local_name='MyRobot',  # your device name
+                                  appearance=0)
 
-    # 3) Create advertisement object
-    ad = Advertisement(bus, ADVERTISEMENT_PATH, ['12345678-1234-1234-1234-1234567890ab'])
+    # 3) Add a primary service
+    robot.add_service(svc_id=1,
+                      uuid=SERVICE_UUID,
+                      primary=True)
 
-    # 4) Register the advertisement
-    ad_mgr = dbus.Interface(
-        bus.get_object(BLUEZ_SERVICE_NAME, ADAPTER_PATH),
-        ADVERTISING_MANAGER_IFACE
-    )
+    # 4) Add a characteristic under that service
+    robot.add_characteristic(svc_id=1,
+                             chr_id=1,
+                             uuid=CHARACTERISTIC_UUID,
+                             value=[],         # initial empty value
+                             notifying=False,
+                             flags=['read', 'write'],
+                             read_callback=read_callback,
+                             write_callback=write_callback)
 
-    # Schedule the registration to happen once the loop is running:
-    def register_ad():
-        ad_mgr.RegisterAdvertisement(ADVERTISEMENT_PATH, {})
-        print("Advertisement registered.")
-        return False     # remove from idle loop
+    # 5) Publish (this starts advertising + GATT server)
+    robot.publish()
+    print("Advertising and GATT server running…")
+    # 6) Sit in the main loop
+    robot.run()
 
-    GLib.idle_add(register_ad)
-
-    # Now start dispatching D‑Bus events
-    print("Starting main loop…")
-    GLib.MainLoop().run()
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

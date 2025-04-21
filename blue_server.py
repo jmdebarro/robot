@@ -5,26 +5,43 @@ from gi.repository import GLib
 
 
 
-BLUEZ_SERVICE_NAME       = 'org.bluez'
-ADAPTER_IFACE            = 'org.bluez.Adapter1'
-ADVERTISING_MANAGER_IFACE= 'org.bluez.LEAdvertisingManager1'
-ADVERTISEMENT_IFACE      = 'org.bluez.LEAdvertisement1'
-ADAPTER_PATH             = '/org/bluez/hci0'
-ADVERTISEMENT_PATH       = '/org/bluez/robot/advertisement0'
+ADVERTISEMENT_IFACE = 'org.bluez.LEAdvertisement1'
+ADVERTISEMENT_PATH = '/org/bluez/robot/advertisement0'
 
 class Advertisement(dbus.service.Object):
     def __init__(self, bus, path, service_uuids):
         super().__init__(bus, path)
         self.service_uuids = service_uuids
 
-    @dbus.service.property(ADVERTISEMENT_IFACE, signature='s')
-    def Type(self):
-        return 'peripheral'
+    # org.freedesktop.DBus.Properties.Get(interface, property) → variant
+    @dbus.service.method('org.freedesktop.DBus.Properties',
+                         in_signature='ss', out_signature='v')
+    def Get(self, interface, prop):
+        if interface != ADVERTISEMENT_IFACE:
+            raise dbus.exceptions.DBusException(
+                'org.freedesktop.DBus.Error.InvalidArgs',
+                'Invalid interface ' + interface)
+        if prop == 'Type':
+            return 'peripheral'
+        if prop == 'ServiceUUIDs':
+            return dbus.Array(self.service_uuids, signature='s')
+        raise dbus.exceptions.DBusException(
+            'org.freedesktop.DBus.Error.InvalidArgs',
+            'Unknown property ' + prop)
 
-    @dbus.service.property(ADVERTISEMENT_IFACE, signature='as')
-    def ServiceUUIDs(self):
-        return self.service_uuids
+    # org.freedesktop.DBus.Properties.GetAll(interface) → dict<string,variant>
+    @dbus.service.method('org.freedesktop.DBus.Properties',
+                         in_signature='s', out_signature='a{sv}')
+    def GetAll(self, interface):
+        if interface != ADVERTISEMENT_IFACE:
+            raise dbus.exceptions.DBusException(
+                'org.freedesktop.DBus.Error.InvalidArgs')
+        return {
+            'Type': dbus.String('peripheral'),
+            'ServiceUUIDs': dbus.Array(self.service_uuids, signature='s')
+        }
 
+    # org.bluez.LEAdvertisement1.Release()
     @dbus.service.method(ADVERTISEMENT_IFACE, in_signature='', out_signature='')
     def Release(self):
         print(f"{ADVERTISEMENT_PATH}: released")

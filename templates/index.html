@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h2>Voice Command Interface</h2>
+    <button onclick="startRecognition()">Send Command</button>
+    <p id="status">Awaiting command...</p>
+
+    <button onclick="connectToRobot()">Connect to Robot</button>
+    <p id="connection">🔴 Not Connected</p>
+
+    <script>
+        function connectToRobot() {
+            document.getElementById('status').innerText = "🟡 Connecting...";
+            startRobot();
+
+            
+        }
+
+        function startRobot() {
+            fetch("/start_robot", {
+                method: "POST"
+            })
+            .then(response => response.json)
+            .then(data => {
+                if (data.status == "success") {
+                    document.getElementById('status').innerText = "🟢 Connected";
+                } else {
+                    document.getElementById('status').innerText = "🔴 Connection Failed";
+                    alert("Error: " + data.message);
+                }
+            })
+            .catch(error => alert("Error: " + error));
+        }
+
+
+        function startRecognition() {
+            const recognition = new(window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+
+            recognition.start();
+            document.getElementById('status').innerText = "Listening...";
+
+            recognition.onresult = function(event) {
+                const command = event.results[0][0].transcript;
+                document.getElementById('status').innerText = "Command: " + command;
+                sendCommand(command);
+            };
+
+            recognition.onerror = function(event) {
+                document.getElementById('status').innerText = 'Error: ' + event.error;
+            };
+        }
+
+        function sendCommand(command) {
+            fetch('/command', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({'command': command}) // Command sent in JSON command field
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.status === 'success'){
+                    alert('Command sent successfully!');
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => alert('Error: ' + error));
+        }
+    </script>
+</body>
+</html>

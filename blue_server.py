@@ -6,18 +6,15 @@ CHARACTERISTIC_UUID  = '12345678-1234-1234-1234-1234567890cd'
 def write_callback(value, options):
     cmd = bytes(value).decode()
     print(f"BLE write received: {cmd}")
-    # TODO: hook into your servo logic here
 
 def read_callback(options):
-    # Optionally return a status or sensor reading
     return bytearray("OK", 'utf-8')
 
 def main():
-    # 2) Create a Peripheral
     ble_adapter = adapter.Adapter()          # defaults to hci0
     ble_adapter.powered = True
 
-    # ✅ Pass the adapter’s address string as the first argument:
+    # Pass the adapter’s address string as the first argument:
     robot = peripheral.Peripheral(
         ble_adapter.address,
         local_name='MyRobot',

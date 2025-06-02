@@ -61,15 +61,18 @@ manager = dbus.Interface(
     "org.bluez.ProfileManager1"
 )
 
+# Register the SPP profile
 manager.RegisterProfile(profile_path, SPP_UUID, profile_options)
 print("SPP profile registered on channel 1")
 
-# Make device discoverable/pairable
-adapter = bus.get("org.bluez", adapter_path)
-adapter.Powered = True
-adapter.Discoverable = True
-adapter.Pairable = True
-adapter.Alias = "RaspberryPi-BT"
+# Make device discoverable and pairable using org.freedesktop.DBus.Properties
+adapter_obj = bus.get_object("org.bluez", "/org/bluez/hci0")
+adapter_props = dbus.Interface(adapter_obj, "org.freedesktop.DBus.Properties")
+adapter_props.Set("org.bluez.Adapter1", "Powered", dbus.Boolean(True))
+adapter_props.Set("org.bluez.Adapter1", "Pairable", dbus.Boolean(True))
+adapter_props.Set("org.bluez.Adapter1", "Discoverable", dbus.Boolean(True))
+adapter_props.Set("org.bluez.Adapter1", "Alias", dbus.String("RaspberryPi-BT"))
 
+# Start the main loop
 loop = GLib.MainLoop()
 loop.run()

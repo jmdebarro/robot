@@ -55,7 +55,7 @@ profile_options = {
     "UUIDs": dbus.Array([SPP_UUID], signature="s")
 }
 
-profile = Profile(bus.con, profile_path)
+profile = Profile(bus, profile_path)
 manager = dbus.Interface(
     dbus.SystemBus().get_object("org.bluez", "/org/bluez"),
     "org.bluez.ProfileManager1"

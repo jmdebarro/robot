@@ -5,27 +5,61 @@
     <button onclick="startRecognition()">Send Command</button>
     <p id="status">Awaiting command...</p>
 
-    <button onclick="connectToRobot()">Connect to Robot</button>
+    <button id="link">Connect to Robot</button>
     <p id="connection">🔴 Not Connected</p>
 
-    <script>
-        function connectToRobot() {
-            document.getElementById('status').innerText = "🟡 Connecting...";
-            startRobot();
 
-            
-        }
+    <script>
+        let connected = false
+        const myButton = getElementById("link")
+
+        myButton.addEventListener('click', function() {
+            if (!connected) {
+                myButton.onclick = function() {
+                    document.getElementById('connection').innerText = "🟡 Connecting...";
+                    fetch("/connect", {
+                        method: "POST"
+                    })
+                    .then(response => response.json)
+                    .then(data => {
+                        if (data.status == "success") {
+                            document.getElementById('connection').innerText = "🟢 Connected";
+                        } else {
+                            document.getElementById('connection').innerText = "🔴 Connection Failed";
+                            alert("Error: " + data.message);
+                        }
+                    })
+                    .catch(error => alert("Error: " + error));
+                }
+                myButton.innerText = "Connect to Robot"
+                connected = true
+
+            } else {
+
+                myButton.onclick = function() {
+                    fetch("/disconnect", {
+                        method: "POST"
+                    })
+                    .then(response => response.json)
+                    .catch(error => alert("Error: " + error))
+                }
+                myButton.innerText = "Disconnet"
+                connected = false
+            }
+        })
+
 
         function startRobot() {
-            fetch("/start_robot", {
+            document.getElementById('connection').innerText = "🟡 Connecting...";
+            fetch("/connect", {
                 method: "POST"
             })
             .then(response => response.json)
             .then(data => {
                 if (data.status == "success") {
-                    document.getElementById('status').innerText = "🟢 Connected";
+                    document.getElementById('connection').innerText = "🟢 Connected";
                 } else {
-                    document.getElementById('status').innerText = "🔴 Connection Failed";
+                    document.getElementById('connection').innerText = "🔴 Connection Failed";
                     alert("Error: " + data.message);
                 }
             })
@@ -51,6 +85,7 @@
                 document.getElementById('status').innerText = 'Error: ' + event.error;
             };
         }
+
 
         function sendCommand(command) {
             fetch('/command', {

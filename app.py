@@ -10,15 +10,13 @@ ble_client = None
 SERVICE_UUID = "12345678-1234-1234-1234-1234567890ab"
 CHARACTERISTIC_UUID = "12345678-1234-1234-1234-1234567890cd"
 
-# Start event loop
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
-
 
 # Connecet to robot
 async def connect():
     global ble_client
     ble_client = BleakClient("b8:27:eb:14:1a:19")
+    print("Inside here")
+    print(ble_client)
     await ble_client.connect()
     return ble_client.is_connected
 
@@ -28,14 +26,14 @@ async def disconnect():
     global ble_client
     try:
         if ble_client and ble_client.is_connected:
-            loop.run_until_complete(ble_client.disconnect())
+            asyncio.run(ble_client.disconnect())
             return jsonify({"status": "Disconnected"})
     except Exception as e:
         return jsonify({"status" : "Failed", "message": str(e)}), 500    
 
 
 # Send commands
-async def send_command_ble(command):
+async def send_command(command):
     global ble_client
     if ble_client and ble_client.is_connected:
         await ble_client.write_gatt_char(CHARACTERISTIC_UUID, command.encode())
@@ -57,9 +55,8 @@ def command():
 
     if not cmd:
         return jsonify({'status': 'error', 'message': 'No command provided'}), 400
-
     try:
-        success = loop.run_until_complete(send_command_ble(cmd))
+        success = asyncio.run(send_command(cmd))
         if success:
             return jsonify({'status': 'command sent'})
         else:
@@ -69,10 +66,10 @@ def command():
 
 
 # Establishes connection with the robot
-@app.route("/start_robot", methods=["POST"])
-def start_robot():
+@app.route("/connect", methods=["POST"])
+def link():
     try:
-        connected_ble = loop.run_until_complete(connect)
+        connected_ble = asyncio.run(connect())
         return jsonify({"status" : "Connected" if connected_ble else "Failed"}), 400
     except Exception as e:
         return jsonify({"status": "Error", "message": str(e)}), 500
@@ -83,7 +80,7 @@ def disconnect():
     global ble_client
     try:
         if ble_client and ble_client.is_connected:
-            loop.run_until_complete(ble_client.disconnect())
+            asyncio.run(ble_client.disconnect())
             return jsonify({'status': 'disconnected'})
         else:
             return jsonify({'status': 'not connected'}), 400

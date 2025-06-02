@@ -24,6 +24,7 @@ kit = MotorKit(i2c=board.I2C())
 
 
 class Robot:
+    
     def __init__(self, left_trim=0, right_trim=0, stop_at_exit=True):
         """Create an instance of the robot.  Can specify the following optional
         parameter

@@ -2,7 +2,7 @@
 import socket
 
 server_sock = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
-server_sock.bind(("", 1))
+server_sock.bind(("B8:27:EB:EB:E5:E6", 1))
 server_sock.listen(1)
 
 print("Waiting for connection on RFCOMM channel 1...")

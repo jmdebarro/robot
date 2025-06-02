@@ -1,10 +1,12 @@
-from pydbus import SystemBus
-from gi.repository import GLib
 import dbus
 import dbus.service
+import dbus.mainloop.glib
+from gi.repository import GLib
 import os
 
-bus = SystemBus()
+dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+bus = dbus.SystemBus()
+
 adapter_path = "/org/bluez/hci0"
 profile_path = "/bluez/example/profile"
 

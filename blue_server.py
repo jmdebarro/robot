@@ -1,6 +1,7 @@
 from pydbus import SystemBus
 from gi.repository import GLib
 import dbus
+import dbus.service
 import os
 
 bus = SystemBus()

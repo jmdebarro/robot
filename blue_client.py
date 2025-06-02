@@ -1,21 +1,16 @@
-import asyncio
-from bleak import BleakClient
+import serial
+import time
 
-# UUIDs
-SERVICE_UUID = "12345678-1234-1234-1234-1234567890ab"
-CHARACTERISTIC_UUID = "12345678-1234-1234-1234-1234567890cd"
+ser = serial.Serial('/dev/rfcomm0', baudrate=9600, timeout=1)
 
-async def run():
-    async with BleakClient("b8:27:eb:14:1a:19") as client:
-        print(f"Connected: {client.is_connected}")
+# Give it a moment to connect
+time.sleep(2)
 
-        # Write a command (e.g., "forward")
-        await client.write_gatt_char(CHARACTERISTIC_UUID, b"forward")
-        print("Command sent")
+# Send a command
+ser.write(b'ping\n')
 
-        # Read the value
-        value = await client.read_gatt_char(CHARACTERISTIC_UUID)
-        print(f"Received: {value}")
+# Read response
+response = ser.readline()
+print("Response from Pi:", response.decode().strip())
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(run())
+ser.close()

@@ -26,22 +26,28 @@ class Profile(dbus.service.Object):
                         in_signature="oha{sv}", out_signature="")
     def NewConnection(self, device, fd, properties):
         print("New connection from:", device)
-        
-        # Open the file descriptor as a read-write file
-        sock = os.fdopen(fd.take(), 'r+b', buffering=0)
-        
-        while True:
-            try:
-                line = sock.readline().decode('utf-8').strip()
-                print(f"Received: '{line}'")
-                
-                if line == "ping":
+
+        # Use os.fdopen to create a binary file-like object from the socket
+        try:
+            sock = os.fdopen(fd.take(), 'r+b', buffering=0)
+
+            while True:
+                line = sock.readline()
+                if not line:
+                    print("Client disconnected.")
+                    break
+
+                decoded = line.decode('utf-8').strip()
+                print(f"Received: '{decoded}'")
+
+                if decoded == "ping":
                     sock.write(b"pong\n")
                 else:
                     sock.write(b"unknown\n")
-            except Exception as e:
-                print("Connection error:", e)
-                break
+
+        except Exception as e:
+            print("Connection error:", e)
+
 
     @dbus.service.method("org.bluez.Profile1",
                          in_signature="o", out_signature="")

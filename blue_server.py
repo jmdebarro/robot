@@ -33,6 +33,8 @@ class Profile(dbus.service.Object):
         sock_fd = fd.take()
         client_sock = socket.fromfd(sock_fd, socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
 
+        client_sock.setblocking(True)
+
         # Close the original file descriptor (now duplicated in the socket)
         os.close(sock_fd)
 

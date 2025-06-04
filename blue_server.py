@@ -3,6 +3,7 @@ import dbus.service
 import dbus.mainloop.glib
 from gi.repository import GLib
 import os
+import socket
 
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 bus = dbus.SystemBus()
@@ -22,31 +23,40 @@ class Profile(dbus.service.Object):
     def Release(self):
         print("Release")
 
+
     @dbus.service.method("org.bluez.Profile1",
                         in_signature="oha{sv}", out_signature="")
     def NewConnection(self, device, fd, properties):
         print("New connection from:", device)
 
-        # Use os.fdopen to create a binary file-like object from the socket
-        try:
-            sock = os.fdopen(fd.take(), 'r+b', buffering=0)
+        # Convert D-Bus file descriptor into a real socket object
+        sock_fd = fd.take()
+        client_sock = socket.fromfd(sock_fd, socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
 
+        # Close the original file descriptor (now duplicated in the socket)
+        os.close(sock_fd)
+
+        try:
             while True:
-                line = sock.readline()
-                if not line:
+                data = client_sock.recv(1024)
+                if not data:
                     print("Client disconnected.")
                     break
 
-                decoded = line.decode('utf-8').strip()
+                decoded = data.decode('utf-8').strip()
                 print(f"Received: '{decoded}'")
 
                 if decoded == "ping":
-                    sock.write(b"pong\n")
+                    client_sock.send(b"pong\n")
                 else:
-                    sock.write(b"unknown\n")
+                    client_sock.send(b"unknown\n")
 
         except Exception as e:
             print("Connection error:", e)
+
+        finally:
+            client_sock.close()
+
 
 
     @dbus.service.method("org.bluez.Profile1",

@@ -23,21 +23,24 @@ class Profile(dbus.service.Object):
         print("Release")
 
     @dbus.service.method("org.bluez.Profile1",
-                         in_signature="oha{sv}", out_signature="")
-    
+                        in_signature="oha{sv}", out_signature="")
     def NewConnection(self, device, fd, properties):
         print("New connection from:", device)
-        os.dup2(fd.take(), 0)
-        os.dup2(fd.take(), 1)
+        
+        # Open the file descriptor as a read-write file
+        sock = os.fdopen(fd.take(), 'r+b', buffering=0)
+        
         while True:
             try:
-                data = input()
-                print(f"Received {data}")
-                if data.strip() == "ping":
-                    print("pong")
+                line = sock.readline().decode('utf-8').strip()
+                print(f"Received: '{line}'")
+                
+                if line == "ping":
+                    sock.write(b"pong\n")
                 else:
-                    print("unknown")
-            except EOFError:
+                    sock.write(b"unknown\n")
+            except Exception as e:
+                print("Connection error:", e)
                 break
 
     @dbus.service.method("org.bluez.Profile1",

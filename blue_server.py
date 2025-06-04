@@ -24,6 +24,7 @@ class Profile(dbus.service.Object):
 
     @dbus.service.method("org.bluez.Profile1",
                          in_signature="oha{sv}", out_signature="")
+    
     def NewConnection(self, device, fd, properties):
         print("New connection from:", device)
         os.dup2(fd.take(), 0)
@@ -31,6 +32,7 @@ class Profile(dbus.service.Object):
         while True:
             try:
                 data = input()
+                print(f"Received {data}")
                 if data.strip() == "ping":
                     print("pong")
                 else:

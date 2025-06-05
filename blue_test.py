@@ -41,11 +41,9 @@ class Profile(dbus.service.Object):
                 return False  # Stop watching
             msg = data.decode('utf-8', errors='ignore').strip()
             print(f"Received: '{msg}'")
-
-            if msg == "ping":
-                os.write(fd, b"pong\n")
-            else:
-                os.write(fd, b"unknown\n")
+            msg += "\n"
+            encoded_msg = msg.encode('utf-8')
+            os.write(fd, encoded_msg)
         except Exception as e:
             print("Error during read/write:", e)
             os.close(fd)
